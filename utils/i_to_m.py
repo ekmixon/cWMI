@@ -71,11 +71,7 @@ def convert_interface(infile, outfile, interface_name, overwrite):
                 elif method_started:
                     param = {}
                     # processing parameters, out takes precedence
-                    if '[out]' in line_stripped:
-                        param['direction'] = '_Out_'
-                    else:
-                        param['direction'] = '_In_'
-
+                    param['direction'] = '_Out_' if '[out]' in line_stripped else '_In_'
                     name_idx = -1
                     type_idx = name_idx - 1
 
@@ -140,7 +136,7 @@ def convert_interface(infile, outfile, interface_name, overwrite):
         method_data += '        _{:s}.errcheck = winapi.RAISE_NON_ZERO_ERR\n'.format(method['name'])
         bstr_alloc_str = build_bstr_alloc(method['params'])
         method_data += bstr_alloc_str
-        method_data += build_call(method, True if bstr_alloc_str else False)
+        method_data += build_call(method, bool(bstr_alloc_str))
         method_data += build_bstr_free(method['params'], True if bstr_alloc_str else False)
         method_data += build_return(method['params'])
 
@@ -173,10 +169,7 @@ def build_bstr_alloc(params):
 
 
 def build_bstr_free(params, add_finally):
-    if add_finally:
-        bstr_free_str = '        finally:\n'
-    else:
-        bstr_free_str = ''
+    bstr_free_str = '        finally:\n' if add_finally else ''
     for param in params:
         if param['type'] == 'BSTR':
             bstr_free_str += '            if {:s} is not None:\n                winapi.SysFreeString({:s})\n'.format(
@@ -189,9 +182,7 @@ def build_call(method, add_try):
     call_str = ''
     ret_count = 1
     ret_ptrs = []
-    try_str = ''
-    if add_try:
-        try_str = '        try:\n    '
+    try_str = '        try:\n    ' if add_try else ''
     for param in method['params']:
         if param['direction'] == '_Out_':
             ret_obj_name = 'return_obj' if ret_count < 2 else 'return_obj{:d}'.format(ret_count)
@@ -199,9 +190,10 @@ def build_call(method, add_try):
             ret_count += 1
 
     if ret_ptrs:
-        call_str += '{:s}        {:s} = _{:s}(self.this'.format(try_str,
-                                                                ', '.join([ret_ptr for ret_ptr in ret_ptrs]),
-                                                                method['name'])
+        call_str += '{:s}        {:s} = _{:s}(self.this'.format(
+            try_str, ', '.join(list(ret_ptrs)), method['name']
+        )
+
     else:
         call_str += '{:s}        _{:s}(self.this'.format(try_str, method['name'])
 
@@ -261,32 +253,34 @@ def build_return(params):
                 return_str += '        {:s} = winapi.convert_bstr_to_str({:s})\n'.format(ret_obj_name,
                                                                                          ret_obj_name)
     if ret_objs:
-        return_str += '        return {:s}\n'.format(', '.join([ret_obj for ret_obj in ret_objs]))
+        return_str += '        return {:s}\n'.format(', '.join(list(ret_objs)))
     return return_str
 
 
 def convert_type(type_str):
     if type_str == 'long':
-        ret_str = 'ctypes.c_long'
+        return 'ctypes.c_long'
     elif type_str == 'LPWSTR':
-        ret_str = 'wintypes.LPWSTR'
+        return 'wintypes.LPWSTR'
     elif type_str == 'LPCWSTR':
-        ret_str = 'wintypes.LPCWSTR'
+        return 'wintypes.LPCWSTR'
     elif type_str == 'LONG':
-        ret_str = 'wintypes.LONG'
+        return 'wintypes.LONG'
     elif type_str == 'ULONG':
-        ret_str = 'wintypes.ULONG'
+        return 'wintypes.ULONG'
     elif type_str == 'VARIANT':
-        ret_str = 'winapi.VARIANT'
+        return 'winapi.VARIANT'
     elif type_str == 'SAFEARRAY':
-        ret_str = 'winapi.SAFEARRAY'
+        return 'winapi.SAFEARRAY'
     elif '**' in type_str or '* *' in type_str:
-        ret_str = 'ctypes.POINTER(wintypes.LPVOID)'
+        return 'ctypes.POINTER(wintypes.LPVOID)'
     elif '*' in type_str:
-        ret_str = 'ctypes.POINTER({:s})'.format(convert_type(type_str.replace('*', '').strip()))
+        return 'ctypes.POINTER({:s})'.format(
+            convert_type(type_str.replace('*', '').strip())
+        )
+
     else:
-        ret_str = type_str
-    return ret_str
+        return type_str
 
 
 def build_prototype(params):
@@ -301,11 +295,7 @@ def build_paramflags(params):
     param_flags = '        paramflags = ('
     started = False
     for param in params:
-        if started:
-            sp = ' ' * 22
-        else:
-            sp = ''
-
+        sp = ' ' * 22 if started else ''
         started = True
         param_flag = '{:s}({:s}, \'{:s}\'),\n'.format(sp,
                                                       param['direction'],
@@ -324,10 +314,7 @@ def build_paramflags(params):
         #                                                       param['direction'],
         #                                                       param['name'])
         param_flags += param_flag
-    if len(params):
-        param_flags += '{:s})\n\n'.format(' ' * 22)
-    else:
-        param_flags += ')\n\n'
+    param_flags += '{:s})\n\n'.format(' ' * 22) if len(params) else ')\n\n'
     return param_flags
 
 
@@ -345,7 +332,7 @@ def convert_param(method, param):
     param_sanitized = param.replace('*', '')
     substr = param_sanitized
     try:
-        substr = re.search('([A-Z]\w+)', param_sanitized).group(1)
+        substr = re.search('([A-Z]\w+)', param_sanitized)[1]
     except:
         pass
     case_re = re.compile(r'((?<=[a-z0-9])[A-Z]|(?!^)[A-Z](?=[a-z]))')

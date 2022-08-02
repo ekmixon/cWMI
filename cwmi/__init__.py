@@ -47,19 +47,18 @@ def create_variant(val, v_type=None):
             winapi.V_VAR(var).bstrVal = bstr
         else:
             raise NotImplemented()
+    elif isinstance(val, int):
+        winapi.SET_VT(var, winapi.VT_I4)
+        winapi.V_VAR(var).lVal = ctypes.c_int32(val)
+    elif isinstance(val, float):
+        winapi.SET_VT(var, winapi.VT_R4)
+        winapi.V_VAR(var).fltVal = ctypes.c_float(val)
+    elif isinstance(val, str):
+        winapi.SET_VT(var, winapi.VT_BSTR)
+        bstr = winapi.SysAllocString(val)
+        winapi.V_VAR(var).bstrVal = bstr
     else:
-        if isinstance(val, int):
-            winapi.SET_VT(var, winapi.VT_I4)
-            winapi.V_VAR(var).lVal = ctypes.c_int32(val)
-        elif isinstance(val, float):
-            winapi.SET_VT(var, winapi.VT_R4)
-            winapi.V_VAR(var).fltVal = ctypes.c_float(val)
-        elif isinstance(val, str):
-            winapi.SET_VT(var, winapi.VT_BSTR)
-            bstr = winapi.SysAllocString(val)
-            winapi.V_VAR(var).bstrVal = bstr
-        else:
-            raise NotImplemented()
+        raise NotImplemented()
     return var
 
 
@@ -119,8 +118,7 @@ def safe_array_to_list(safe_array, element_type):
     data = winapi.SafeArrayAccessData(safe_array)
     str_array = ctypes.cast(data, ctypes.POINTER(element_type))
     try:
-        for i in range(safe_array.contents.cbElements):
-            ret.append(str_array[i])
+        ret.extend(str_array[i] for i in range(safe_array.contents.cbElements))
     finally:
         winapi.SafeArrayUnaccessData(safe_array)
     winapi.SafeArrayDestroy(safe_array)

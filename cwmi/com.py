@@ -66,7 +66,7 @@ class ComClassInstance(ctypes.Structure):
     '''
     def __init__(self, this):
         if not this:
-            raise WindowsError('Could not construct {}'.format(self.__class__))
+            raise WindowsError(f'Could not construct {self.__class__}')
         self.this = ctypes.cast(this, ctypes.POINTER(self.__class__))
         ctypes.Structure.__init__(self)
 
@@ -77,46 +77,46 @@ class ComClassInstance(ctypes.Structure):
             raise NameError(item)
 
     def __eq__(self, other):
-        if isinstance(other, ComClassInstance):
-            ret = self.this == other.this
-        else:
-            ret = self.this == other
-        return ret
+        return (
+            self.this == other.this
+            if isinstance(other, ComClassInstance)
+            else self.this == other
+        )
 
     def __ne__(self, other):
-        if isinstance(other, ComClassInstance):
-            ret = self.this != other.this
-        else:
-            ret = self.this != other
-        return ret
+        return (
+            self.this != other.this
+            if isinstance(other, ComClassInstance)
+            else self.this != other
+        )
 
     def __lt__(self, other):
-        if isinstance(other, ComClassInstance):
-            ret = self.this < other.this
-        else:
-            ret = self.this < other
-        return ret
+        return (
+            self.this < other.this
+            if isinstance(other, ComClassInstance)
+            else self.this < other
+        )
 
     def __le__(self, other):
-        if isinstance(other, ComClassInstance):
-            ret = self.this <= other.this
-        else:
-            ret = self.this <= other
-        return ret
+        return (
+            self.this <= other.this
+            if isinstance(other, ComClassInstance)
+            else self.this <= other
+        )
 
     def __gt__(self, other):
-        if isinstance(other, ComClassInstance):
-            ret = self.this > other.this
-        else:
-            ret = self.this > other
-        return ret
+        return (
+            self.this > other.this
+            if isinstance(other, ComClassInstance)
+            else self.this > other
+        )
 
     def __ge__(self, other):
-        if isinstance(other, ComClassInstance):
-            ret = self.this >= other.this
-        else:
-            ret = self.this >= other
-        return ret
+        return (
+            self.this >= other.this
+            if isinstance(other, ComClassInstance)
+            else self.this >= other
+        )
 
 
 class IUnknown(ComClassInstance):

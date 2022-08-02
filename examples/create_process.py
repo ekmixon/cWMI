@@ -21,11 +21,10 @@ import cwmi
 
 def create_process(path):
     out = cwmi.call_method('root\\cimv2', 'Win32_Process', 'Create', {'CommandLine': path})
-    ret = out['ReturnValue']
-    if not ret:
-        print('Process created successfully with process id of {:d}'.format(out['ProcessId']))
-    else:
+    if ret := out['ReturnValue']:
         print('Process not created successfully, ERROR is {:d}'.format(ret))
+    else:
+        print('Process created successfully with process id of {:d}'.format(out['ProcessId']))
 
 
 if __name__ == '__main__':

@@ -922,10 +922,7 @@ class IWbemCallResult(com.IUnknown):
                                    'GetCallStatus',
                                    paramflags)
         _GetCallStatus.errcheck = winapi.RAISE_NON_ZERO_ERR
-        return_obj = _GetCallStatus(self.this,
-                                    timeout
-                                    )
-        return return_obj
+        return _GetCallStatus(self.this, timeout)
 
 
 IWbemContext_Clone_Idx = 3
@@ -1063,11 +1060,7 @@ class IWbemContext(com.IUnknown):
                               'GetValue',
                               paramflags)
         _GetValue.errcheck = winapi.RAISE_NON_ZERO_ERR
-        return_obj = _GetValue(self.this,
-                               name,
-                               flags
-                               )
-        return return_obj
+        return _GetValue(self.this, name, flags)
 
     def DeleteValue(self, name, flags):
         prototype = ctypes.WINFUNCTYPE(HRESULT,
@@ -1312,8 +1305,7 @@ class IWbemServices(com.IUnknown):
         return return_obj
 
     def PutClass(self, object_param, flags, ctx):
-        return_obj = self.PutClassWithResult(object_param, flags, ctx)
-        if return_obj:
+        if return_obj := self.PutClassWithResult(object_param, flags, ctx):
             return_obj.Release()
 
     def PutClassAsync(self, object_param, flags, ctx, response_handler):
@@ -1374,8 +1366,7 @@ class IWbemServices(com.IUnknown):
         return return_obj
 
     def DeleteClass(self, class_param, flags, ctx):
-        return_obj = self.DeleteClassWithResult(class_param, flags, ctx)
-        if return_obj:
+        if return_obj := self.DeleteClassWithResult(class_param, flags, ctx):
             return_obj.Release()
 
     def DeleteClassAsync(self, class_param, flags, ctx, response_handler):
@@ -1498,8 +1489,7 @@ class IWbemServices(com.IUnknown):
         return return_obj
 
     def PutInstance(self, inst, flags, ctx):
-        return_obj = self.PutInstanceWithResult(inst, flags, ctx)
-        if return_obj:
+        if return_obj := self.PutInstanceWithResult(inst, flags, ctx):
             return_obj.Release()
 
     def PutInstanceAsync(self, inst, flags, ctx, response_handler):
@@ -1560,8 +1550,7 @@ class IWbemServices(com.IUnknown):
         return return_obj
 
     def DeleteInstance(self, object_path, flags, ctx):
-        return_obj = self.DeleteInstanceWithResult(object_path, flags, ctx)
-        if return_obj:
+        if return_obj := self.DeleteInstanceWithResult(object_path, flags, ctx):
             return_obj.Release()
 
     def DeleteInstanceAsync(self, object_path, flags, ctx, response_handler):
